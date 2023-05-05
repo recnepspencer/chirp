@@ -2,16 +2,29 @@ import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
-
 import { api, RouterOutputs } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
 import { LoadingPage, LoadingSpinner } from "~/components/loading";
+import { useState } from "react";
+
 dayjs.extend(relativeTime);
 
 const CreatePostWizard = () => {
   const { user } = useUser();
+
+  const [input, setInput] = useState('')
+
+  const ctx = api.useContext();
+
+  const {mutate, isLoading: isPosting} = api.posts.create.useMutation({
+    onSuccess: () => {
+      setInput("");
+      void ctx.posts.getAll.invalidate();
+    }
+  });
+
 
   console.log(user);
 
@@ -29,7 +42,11 @@ const CreatePostWizard = () => {
         type="text"
         placeholder="Type Some Emojis"
         className="grow bg-transparent outline-none"
+        value={input}
+        onChange ={ (e) => setInput(e.target.value)}
+        disabled={isPosting}
       />
+      <button onClick={() => mutate({content: input})}>Post</button>
     </div>
   );
 };
@@ -39,7 +56,7 @@ type PostWithUser = RouterOutputs["posts"]["getAll"][number];
 const PostView = (props: PostWithUser) => {
   const { post, author } = props;
   return (
-    <div key={post.id} className="flex border-b border-slate-400 p-4">
+    <div key={post.id} className="flex gap-3 border-b border-slate-400 p-4">
       <Image
         src={author.profilePicture}
         className="h-14 w-14 rounded-full"
@@ -54,7 +71,7 @@ const PostView = (props: PostWithUser) => {
             post.createdAt
           ).fromNow()}`}</span>
         </div>
-        <span>{post.content}</span>
+        <span className="text-2xl">{post.content}</span>
       </div>
     </div>
   );
@@ -63,13 +80,17 @@ const PostView = (props: PostWithUser) => {
 const Feed = () => {
   const { data, isLoading: postsLoading } = api.posts.getAll.useQuery();
 
+
+  console.log("Loading:", postsLoading);
+  console.log("Data:", data);
+
   if (postsLoading) return <LoadingPage/>;
 
   if (!data) return <div>Something went wrong!</div>
 
   return (
     <div className="flex flex-col">
-    {[...data, ...data].map((fullPost) => (
+    {data.map((fullPost) => (
       <PostView {...fullPost} key={fullPost.post.id} />
     ))}
   </div>
