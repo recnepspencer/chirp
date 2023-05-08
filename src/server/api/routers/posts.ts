@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { User } from "@clerk/nextjs/dist/api";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import type { Post } from "@prisma/client";
 
 import {
   createTRPCRouter,
@@ -11,6 +12,8 @@ import {
 } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 
+
+
 const filterUserForClient = (user: User) => {
   return {
     id: user.id,
@@ -18,6 +21,10 @@ const filterUserForClient = (user: User) => {
     profilePicture: user.profileImageUrl,
   };
 };
+
+const addUserDataToPosts = async (posts: Post[]) => {
+
+}
 
 const redis = new Redis({
   url: 'https://us1-merry-snake-32728.upstash.io',
@@ -61,6 +68,16 @@ export const postsRouter = createTRPCRouter({
       };
     });
   }),
+
+  getPostsByUserId: publicProcedure.input(z.object({
+    userId: z.string(),
+  })).query(({ctx, input}) => ctx.prisma.post.findMany({
+    where: {
+      authorId: input.userId,
+    },
+    take: 100,
+    orderBy: [{createdAt: "desc"}],
+  })),
 
   create: privateProcedure
     .input(
