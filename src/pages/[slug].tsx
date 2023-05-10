@@ -43,7 +43,7 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
         <div className="relative h-48  bg-slate-600">
           <Image
             src={data.profileImageUrl}
-            alt={`${data.username}'s profile pic`}
+            alt={`${data.username ?? ""}'s profile pic`}
             width={128}
             height={128}
             className="absolute bottom-0 left-0 -mb-[64px] ml-4 rounded-full border-4 border-black"
@@ -82,7 +82,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
     },
   };
 };
-export const getStaticPaths = async () => {
+export const getStaticPaths = () => {
   return { paths: [], fallback: "blocking" };
 };
 
