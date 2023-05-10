@@ -9,8 +9,8 @@ on:
       - main
 
 env:
-  DATABASE_URL='mysql://p8htyjzhmbwyb89vfl6y:pscale_pw_VYxERgJDvKAe8pVH4xokcd7LV20uYzhtD5OBS6f2qC8@aws.connect.psdb.cloud/chirpdb?sslaccept=strict'
-  
+  DATABASE_URL: process.env.DATABASE_URL
+
 jobs:
   build:
     runs-on: ubuntu-latest
